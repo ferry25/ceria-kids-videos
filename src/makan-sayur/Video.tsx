@@ -144,7 +144,7 @@ const Lyrics: React.FC<{ frame: number }> = ({ frame }) => {
         }}
       >
         {song.lines[line].syll.map((s, j) => {
-          const on = frame >= nf[0] - 6; // spoken line: whole line lights up together
+          const on = frame >= nf[j];
           const hit = interpolate(frame - nf[j], [0, 3, 9], [0, 1, 0], CLAMP);
           return (
             <span
