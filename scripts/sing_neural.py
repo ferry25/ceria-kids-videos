@@ -1,60 +1,43 @@
-"""v9 vocal: the clear Piper neural voice of v8, now ON the melody and ON the beat.
+"""Child-like singing vocal from the clear Piper neural voice, locked to the music.
 
-Per lyric line:
-1. Piper speaks the line SLOWER by itself (length_scale tuned) so its natural length is
-   close to the musical phrase -> very little time-stretching (keeps diction clear).
-2. Vowels are located in the audio (scripts/sing.py find_segments); a gentle piecewise
-   time-warp puts each vowel onset exactly on its beat.
-3. Pitch: every syllable is tuned to its melody note (soft "autotune"), keeping a part of the
-   voice's own micro-intonation so it does not sound robotic; short glides between notes.
-4. Formants raised a little (child-like, like v8). Unvoiced consonants are copied from
-   the original speech so they stay crisp.
+v10 (owner feedback: v9 not in sync, sounded like talking):
+- Piper speaks each lyric line and reports its OWN phoneme timings (exact, per sample).
+- The line is rebuilt as a song: onset consonants sit just before the beat, the vowel
+  starts ON the beat and is held until the next syllable's consonant, the melody note
+  changes exactly at each syllable, and speech pauses (commas, spaces) are removed.
+- Pitch: each syllable tuned to its note, short glides, a little of the voice's own
+  micro-intonation + gentle vibrato on long notes (less robotic).
+- Formants raised a little (child-like). Unvoiced consonants copied from the original
+  speech so they stay crisp.
 
 Usage: python3 scripts/sing_neural.py src/<slug>/song.json public/<slug>_vocal.wav
-Needs: the same setup as scripts/speak_lines.py + scripts/sing.py (piper-tts, pyworld, espeak-ng, mbrola-id1).
+Needs: pip install piper-tts onnx pyworld scipy numpy ; Piper Indonesian voice in
+$PIPER_VOICE_DIR (see RUNBOOK).
 """
 import json
 import os
 import sys
-import tempfile
 import wave
 
 import numpy as np
 import pyworld as pw
 from scipy.signal import resample_poly
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-import sing  # noqa: E402  (find_segments, split_syllables, pho_list, hz)
-
 SR = 44100
 FP = 5.0
+FPS = 1000 / FP
 FORMANT = 1.18
-KEEP_NATURAL = 0.35  # 0 = hard autotune, 1 = untouched speech intonation
+KEEP_NATURAL = 0.25  # 0 = hard autotune, 1 = untouched speech intonation
+LENGTH_SCALE = 1.35  # Piper speaking speed (>1 slower = clearer, less stretching)
 PIPER_DIR = os.environ.get("PIPER_VOICE_DIR", "/home/claude/voices/piper-id/vits-piper-id_ID-news_tts-medium")
 
+IPA_VOWELS = set("aeiouəɛɔɪʊæɑɐʌɨ")
+SKIP = {"ˈ", "ˌ", "ː"}
+PAUSE = {"^", "$", ",", " ", ".", "!", "?", ";", ":", "_"}
 
-def piper_line(voice, text, target_s):
-    from piper import SynthesisConfig
 
-    length = 1.4
-    best = None
-    for _ in range(8):
-        with tempfile.NamedTemporaryFile(suffix=".wav") as f:
-            with wave.open(f.name, "wb") as w:
-                voice.synthesize_wav(text, w, syn_config=SynthesisConfig(length_scale=length, noise_scale=0.45, noise_w_scale=0.5))
-            with wave.open(f.name) as w:
-                sr = w.getframerate()
-                x = np.frombuffer(w.readframes(w.getnframes()), dtype=np.int16).astype(np.float64) / 32768
-        x = resample_poly(x, SR, sr)
-        idx = np.where(np.abs(x) > 0.02 * np.max(np.abs(x)))[0]
-        x = x[max(0, idx[0] - 200): idx[-1] + 400]
-        dur = len(x) / SR
-        best = (x, length)
-        if abs(dur - target_s) / target_s < 0.08:
-            break
-        length *= (target_s / dur) ** 0.9
-        length = float(np.clip(length, 0.8, 3.0))
-    return best
+def hz(m):
+    return 440.0 * 2 ** ((m - 69) / 12)
 
 
 def line_words(line):
@@ -67,60 +50,175 @@ def line_words(line):
     return [("".join("".join(c for c in line["syll"][j].lower() if c.isalpha()) for j in w), len(w)) for w in words]
 
 
+def piper_aligned(voice, text):
+    """Speak text; return (audio@SR, [(phoneme, start_s, end_s)]) from Piper's own alignments."""
+    from piper import SynthesisConfig
+
+    audio, phones, t, sr = [], [], 0.0, 22050
+    cfg = SynthesisConfig(length_scale=LENGTH_SCALE, noise_scale=0.45, noise_w_scale=0.5)
+    for ch in voice.synthesize(text, cfg, include_alignments=True):
+        sr = ch.sample_rate
+        audio.append(ch.audio_int16_array.astype(np.float64) / 32768)
+        if not ch.phoneme_alignments:
+            raise RuntimeError("Piper returned no phoneme alignments (pip install onnx)")
+        for al in ch.phoneme_alignments:
+            d = float(al.num_samples) / sr
+            phones.append((al.phoneme, t, t + d))
+            t += d
+    x = resample_poly(np.concatenate(audio), SR, sr)
+    merged, carry = [], None
+    for p, a, b in phones:  # stress marks give their time to the next phoneme
+        if p in SKIP:
+            carry = a if carry is None else carry
+            continue
+        start = carry if carry is not None else a
+        carry = None
+        # affricates c = t+ʃ, j = d+ʒ are ONE consonant in Indonesian
+        if merged and ((merged[-1][0] == "t" and p == "ʃ") or (merged[-1][0] == "d" and p == "ʒ")):
+            q, a0, _ = merged.pop()
+            merged.append((q + p, a0, b))
+            continue
+        merged.append((p, start, b))
+    return x, merged
+
+
+def syllabify_line(phones, words):
+    """Aligned phonemes -> syllables (V.CV / VC.CV). Each: onset [(a,b)], vowel (a,b), coda [(a,b)]."""
+    groups, cur = [], []
+    for p, a, b in phones:
+        if p in PAUSE:
+            if cur:
+                groups.append(cur)
+                cur = []
+        else:
+            cur.append((p, a, b))
+    if cur:
+        groups.append(cur)
+    if len(groups) != len(words):
+        raise ValueError(f"word count mismatch: {len(groups)} spoken vs {len(words)} lyric words")
+    out = []
+    for g, (w, n) in zip(groups, words):
+        names = [p for p, _, _ in g]
+        vi = [i for i, p in enumerate(names) if p[0] in IPA_VOWELS]
+        while len(vi) > n:
+            for k in range(len(vi) - 1):
+                if vi[k + 1] == vi[k] + 1:
+                    vi.pop(k + 1)
+                    break
+            else:
+                vi.pop()
+        if len(vi) != n:
+            raise ValueError(f"cannot split {w}: {names} into {n} syllables")
+        bounds = [0] + [b - min(b - a - 1, 1) for a, b in zip(vi, vi[1:])] + [len(g)]
+        for k in range(n):
+            lo, hi, v = bounds[k], bounds[k + 1], vi[k]
+            v_end = v + 1
+            while v_end < hi and names[v_end][0] in IPA_VOWELS:
+                v_end += 1
+            out.append({
+                "text": "".join(names[lo:hi]),
+                "onset": [(a, b) for _, a, b in g[lo:v]],
+                "vowel": (g[v][1], g[v_end - 1][2]),
+                "coda": [(a, b) for _, a, b in g[v_end:hi]],
+            })
+    return out
+
+
+def _frames(a, b, cap, n):
+    fa = int(round(a * FPS))
+    fb = max(int(round(b * FPS)), fa + 1)
+    fr = list(range(fa, min(fb, n)))
+    if len(fr) > cap:  # compress long consonants, never cut them
+        fr = [fr[int(round(i))] for i in np.linspace(0, len(fr) - 1, cap)]
+    return fr
+
+
+def refine_plan(x, f0, sylls, n):
+    """Piper's alignment gives approximate vowel positions; snap each vowel to the loudest
+    voiced run near it in the real audio, and build onsets from the (non-silent) frames
+    between vowels. Returns [(onset_frames, (va, vb), coda_frames)]."""
+    hop = int(SR * FP / 1000)
+    rms = np.array([np.sqrt(np.mean(x[i * hop: i * hop + hop] ** 2) + 1e-12) for i in range(n)])
+    en = 20 * np.log10(np.convolve(rms, np.ones(3) / 3, mode="same") + 1e-9)
+    silent = en < en.max() - 38
+    en_v = np.where(f0 > 0, en, -120.0)
+    centers = [((sy["vowel"][0] + sy["vowel"][1]) / 2) * FPS for sy in sylls]
+    spans, prev_peak = [], -1
+    for k, c in enumerate(centers):
+        lo = int((centers[k - 1] + c) / 2) if k else 0
+        hi = int((c + centers[k + 1]) / 2) if k + 1 < len(centers) else n
+        lo = max(lo, prev_peak + 2, int(c - 24))
+        hi = max(min(hi, int(c + 24)), lo + 1)
+        pk = lo + int(np.argmax(en_v[lo:hi]))
+        thr = en_v[pk] - 7
+        va = pk
+        while va - 1 > max(prev_peak, 0) and en_v[va - 1] > thr:
+            va -= 1
+        vb = pk + 1
+        while vb < hi and en_v[vb] > thr:
+            vb += 1
+        spans.append((va, max(vb, va + 2)))
+        prev_peak = pk
+    plan = []
+    for k, (va, vb) in enumerate(spans):
+        start = spans[k - 1][1] if k else int(sylls[0]["onset"][0][0] * FPS) if sylls[0]["onset"] else va
+        on = [f for f in range(start, va) if not silent[f]]
+        if len(on) > 20:  # long consonant clusters: compress, never cut
+            on = [on[int(round(i))] for i in np.linspace(0, len(on) - 1, 20)]
+        co = []
+        if k == len(spans) - 1:
+            end = int(sylls[-1]["coda"][-1][1] * FPS) if sylls[-1]["coda"] else vb
+            co = [f for f in range(vb, min(end, n)) if not silent[f]][:16]
+        plan.append((on, (va, vb), co))
+    return plan
+
+
 def sing_line(voice, line, beat_times, end_time):
     wl = line_words(line)
-    text = " ".join(w for w, _ in wl)
-    phrase = end_time - beat_times[0]
-    x, length = piper_line(voice, text, phrase * 0.92)
-    # predicted vowel centres (relative), then locate vowels in the audio
-    centers_ms, t_ms = [], 0.0
-    for w, n in wl:
-        ph = sing.pho_list(w)
-        edges = np.concatenate([[0], np.cumsum([d for _, d in ph])])
-        for lo, hi, vlo, vhi in sing.split_syllables(ph, n):
-            centers_ms.append(t_ms + (edges[vlo] + edges[vhi]) / 2)
-        t_ms += edges[-1]
+    x, phones = piper_aligned(voice, " ".join(w for w, _ in wl))
+    sylls = syllabify_line(phones, wl)
     f0, t = pw.harvest(x, SR, f0_floor=70, f0_ceil=600, frame_period=FP)
     sp = pw.cheaptrick(x, f0, t, SR)
     ap = pw.d4c(x, f0, t, SR)
     n = len(f0)
-    segs = sing.find_segments(x, f0, [c / FP for c in centers_ms])
-    # anchors: source vowel onset (frames) -> output time (frames, relative to line output start)
-    lead = max(0.0, min(0.12, segs[0][1] * FP / 1000))  # speech before first vowel
+    plan = refine_plan(x, f0, sylls, n)
+    lead = len(plan[0][0]) / FPS
     out0 = beat_times[0] - lead
-    src_anchor = [0.0] + [float(va) for _, va, _, _ in segs] + [float(n - 1)]
-    dst_anchor = [0.0] + [(bt - out0) * 1000 / FP for bt in beat_times] + [(end_time - out0) * 1000 / FP]
-    # keep warp monotonic
-    for i in range(1, len(dst_anchor)):
-        dst_anchor[i] = max(dst_anchor[i], dst_anchor[i - 1] + 1)
-    n_out = int(dst_anchor[-1])
-    pos = np.interp(np.arange(n_out), dst_anchor, src_anchor)
+    pos, note_of, is_vowel = [], [], []
+    for k, (on, (va, vb), co) in enumerate(plan):
+        nxt_on = len(plan[k + 1][0]) if k + 1 < len(plan) else 0
+        seg_end = beat_times[k + 1] if k + 1 < len(plan) else end_time
+        span = int(round((seg_end - beat_times[k]) * FPS)) - nxt_on  # beat_k .. next onset
+        n_vowel = max(6, span - len(co))
+        u = np.linspace(0, 1, n_vowel)
+        # natural attack and release of the vowel, smooth hold of its steady middle
+        warp = np.where(u < 0.12, u / 0.12 * 0.25, np.where(u > 0.9, 0.75 + (u - 0.9) / 0.1 * 0.25, 0.25 + (u - 0.12) / 0.78 * 0.5))
+        vsrc = va + warp * (vb - 1 - va)
+        pos += [float(f) for f in on] + list(vsrc) + [float(f) for f in co]
+        note_of += [k] * (len(on) + n_vowel + len(co))
+        is_vowel += [False] * len(on) + [True] * n_vowel + [False] * len(co)
+    pos = np.clip(np.array(pos), 0, n - 1)
+    note_of = np.array(note_of)
+    is_vowel = np.array(is_vowel)
     lo_i = np.floor(pos).astype(int)
     hi_i = np.minimum(lo_i + 1, n - 1)
     fr = (pos - lo_i)[:, None]
     sp2 = sp[lo_i] * (1 - fr) + sp[hi_i] * fr
     ap2 = ap[lo_i] * (1 - fr) + ap[hi_i] * fr
-    src_f0 = f0[np.round(pos).astype(int)]
-    voiced = src_f0 > 0
-    # target notes: note k from (beat k - small anticipation) until beat k+1
-    tt = np.arange(n_out) * FP / 1000 + out0
-    note_hz = np.zeros(n_out)
-    for k, bt in enumerate(beat_times):
-        nxt = beat_times[k + 1] if k + 1 < len(beat_times) else 1e9
-        note_hz[(tt >= bt - 0.04) & (tt < nxt - 0.04)] = sing.hz(line["notes"][k])
-    note_hz[tt < beat_times[0] - 0.04] = sing.hz(line["notes"][0])
-    lf = np.log(note_hz)
-    lf = np.convolve(np.pad(lf, 5, mode="edge"), np.ones(11) / 11, mode="valid")  # ~50 ms glides
-    # natural micro-intonation: deviation of speech f0 from its own slow contour
-    vf = np.where(voiced, src_f0, np.nan)
-    idx = np.arange(n_out)
-    filled = np.interp(idx, idx[voiced], vf[voiced]) if voiced.any() else np.ones(n_out)
+    near = np.round(pos).astype(int)
+    src_f0 = f0[near]
+    voiced = (src_f0 > 0) | is_vowel
+    lf = np.log(np.array([hz(line["notes"][k]) for k in note_of]))
+    lf = np.convolve(np.pad(lf, 4, mode="edge"), np.ones(9) / 9, mode="valid")  # ~40 ms glides
+    idx = np.arange(len(pos))
+    ok = src_f0 > 0
+    filled = np.interp(idx, idx[ok], src_f0[ok]) if ok.any() else np.ones(len(pos))
     slow = np.exp(np.convolve(np.pad(np.log(filled), 15, mode="edge"), np.ones(31) / 31, mode="valid"))
     micro = np.log(filled / slow) * KEEP_NATURAL
-    note_start = np.full(n_out, beat_times[0])
-    for bt in beat_times:
-        note_start[tt >= bt - 0.04] = bt
-    vib = 0.007 * np.sin(2 * np.pi * 5.3 * tt) * np.clip((tt - note_start - 0.2) / 0.2, 0, 1)
+    tt = idx / FPS
+    starts = np.r_[0, np.where(np.diff(note_of) != 0)[0] + 1]
+    since = tt - tt[starts[np.searchsorted(starts, idx, side="right") - 1]]
+    vib = 0.007 * np.sin(2 * np.pi * 5.3 * tt) * np.clip((since - 0.25) / 0.2, 0, 1)
     f0o = np.where(voiced, np.exp(lf + micro + vib), 0.0)
     bins = sp2.shape[1]
     src = np.clip(np.arange(bins) / FORMANT, 0, bins - 1)
@@ -129,9 +227,7 @@ def sing_line(voice, line, beat_times, end_time):
     fb = src - lb
     sp3 = sp2[:, lb] * (1 - fb) + sp2[:, hb] * fb
     y = pw.synthesize(np.ascontiguousarray(f0o), np.ascontiguousarray(sp3), np.ascontiguousarray(ap2), SR, FP)
-    # crisp unvoiced consonants from the original speech
     hop = int(SR * FP / 1000)
-    near = np.round(pos).astype(int)
     cons = np.zeros(len(y))
     orig = np.zeros(len(y))
     for i, j in enumerate(near):
@@ -145,20 +241,25 @@ def sing_line(voice, line, beat_times, end_time):
     fade = int(0.03 * SR)
     y[:fade] *= np.linspace(0, 1, fade)
     y[-fade:] *= np.linspace(1, 0, fade)
-    stretch = phrase / (len(x) / SR)
-    return y, out0, length, stretch
+    # syllable vowel onsets in absolute time (for verification)
+    onsets, i = [], 0
+    for k, (on, _, co) in enumerate(plan):
+        onsets.append(out0 + (i + len(on)) / FPS)
+        i += int((note_of == k).sum())
+    return y, out0, [s["text"] for s in sylls], onsets
 
 
 def main():
     from piper import PiperVoice
 
     onnx = os.path.join(PIPER_DIR, "id_ID-news_tts-medium.onnx")
-    voice = PiperVoice.load(onnx, config_path=onnx + ".json")
+    voice = PiperVoice.load(onnx, config_path=onnx + ".json", include_alignments=True)
     song = json.load(open(sys.argv[1]))
     out = sys.argv[2]
     total = song["durationInFrames"] / song["fps"]
     buf = np.zeros(int(total * SR) + SR)
     E = song["eighth"]
+    worst = 0.0
     for li, line in enumerate(song["lines"]):
         t0 = song["songStart"] + li * song["lineSec"]
         beats, cum = [], 0
@@ -167,10 +268,12 @@ def main():
             cum += r
         last_line = li == len(song["lines"]) - 1
         end = beats[-1] + song["rhythm"][-1] * E * (2.2 if last_line else 0.85)
-        y, out0, length, stretch = sing_line(voice, line, beats, end)
+        y, out0, texts, onsets = sing_line(voice, line, beats, end)
         i = int(out0 * SR)
         buf[i: i + len(y)] += y[: len(buf) - i]
-        print(f"line {li}: length_scale {length:.2f}, time-stretch x{stretch:.2f}")
+        err = max(abs(a - b) for a, b in zip(onsets, beats)) * 1000
+        worst = max(worst, err)
+        print(f"line {li}: {'-'.join(texts)} | max vowel-to-beat error {err:.0f} ms")
     buf = buf[: int(total * SR)]
     buf *= 0.9 / (np.max(np.abs(buf)) + 1e-9)
     pcm = (buf * 32767).astype(np.int16)
@@ -179,7 +282,7 @@ def main():
         w.setsampwidth(2)
         w.setframerate(SR)
         w.writeframes(np.stack([pcm, pcm], axis=1).tobytes())
-    print("wrote", out)
+    print(f"wrote {out} (worst vowel-to-beat error {worst:.0f} ms)")
 
 
 if __name__ == "__main__":
