@@ -1,0 +1,17 @@
+{
+  "fps": 30,
+  "songStart": 0.5,
+  "eighth": 0.25,
+  "lineSec": 3,
+  "rhythm": [1, 1, 2, 2, 1, 1, 2, 2],
+  "durationInFrames": 420,
+  "scenes": [0, 105, 195, 285],
+  "lines": [
+    { "syll": ["Gi", "gi ", "ke", "cil, ", "kok ", "me", "na", "ngis?"], "notes": [64, 64, 62, 60, 62, 64, 60, 57] },
+    { "syll": ["Ku", "man ", "na", "kal ", "pes", "ta ", "sa", "ja!"], "notes": [67, 67, 66, 67, 69, 67, 64, 62] },
+    { "syll": ["Si", "kat, ", "si", "kat, ", "go", "sok ", "ber", "sih!"], "notes": [60, 64, 60, 64, 65, 67, 69, 71] },
+    { "syll": ["Gi", "gi ", "se", "hat, ", "se", "nyum ", "ce", "rah!"], "notes": [72, 72, 71, 69, 67, 69, 71, 72] }
+  ],
+  "chords": [[48, 0], [45, 1], [43, 0], [43, 0], [48, 0], [43, 0], [41, 0], [43, 0]],
+  "popFrames": [215, 230, 245, 260]
+}
