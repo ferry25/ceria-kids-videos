@@ -2,6 +2,8 @@ import { Composition } from "remotion";
 import { MyComposition } from "./Composition";
 import { ToothShort } from "./tooth/ToothShort";
 import toothSong from "./tooth_song.json";
+import { HandWashShort } from "./cuci-tangan/Video";
+import cuciSong from "./cuci-tangan/song.json";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -12,6 +14,14 @@ export const RemotionRoot: React.FC = () => {
         component={ToothShort}
         durationInFrames={toothSong.durationInFrames}
         fps={toothSong.fps}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="HandWashShort"
+        component={HandWashShort}
+        durationInFrames={cuciSong.durationInFrames}
+        fps={cuciSong.fps}
         width={1080}
         height={1920}
       />
