@@ -2,22 +2,98 @@
   "channel": "Ceria Kids Story",
   "note": "Satu topik per hari, berurutan. Setelah dipakai, pindahkan ke 'done' dengan tanggal dan link video.",
   "queue": [
-    { "slug": "cuci-tangan", "judul": "Tangan Kotor Bikin Sakit Perut?", "pesan": "Cuci tangan pakai sabun sebelum makan", "tokoh": "tangan kecil sedih penuh kuman" },
-    { "slug": "makan-sayur", "judul": "Brokoli Kok Ditinggal Sendirian?", "pesan": "Makan sayur biar kuat", "tokoh": "brokoli kecil sedih tidak dimakan" },
-    { "slug": "minum-air", "judul": "Kenapa Badanku Lemas?", "pesan": "Minum air putih yang cukup", "tokoh": "tetes air ceria" },
-    { "slug": "tidur-siang", "judul": "Mata Ngantuk Tapi Mau Main Terus?", "pesan": "Tidur cukup biar semangat", "tokoh": "bantal dan bulan kecil" },
-    { "slug": "rapikan-mainan", "judul": "Mainan Menangis Berserakan!", "pesan": "Rapikan mainan setelah bermain", "tokoh": "boneka beruang sedih di lantai" },
-    { "slug": "buang-sampah", "judul": "Sampah Nakal Bikin Sungai Sedih", "pesan": "Buang sampah pada tempatnya", "tokoh": "tempat sampah lapar" },
-    { "slug": "terima-kasih", "judul": "Kata Ajaib Apa Itu?", "pesan": "Ucapkan tolong, maaf, dan terima kasih", "tokoh": "bintang kata ajaib" },
-    { "slug": "mandi", "judul": "Siapa Takut Mandi?", "pesan": "Mandi dua kali sehari", "tokoh": "gelembung sabun ceria" },
-    { "slug": "antre", "judul": "Ayo Antre Satu-Satu!", "pesan": "Sabar menunggu giliran", "tokoh": "bebek-bebek berbaris" },
-    { "slug": "menyeberang", "judul": "Lampu Merah Bilang Apa?", "pesan": "Menyeberang di zebra cross bersama orang dewasa", "tokoh": "lampu lalu lintas" },
-    { "slug": "berbagi", "judul": "Kue Cuma Satu, Gimana Dong?", "pesan": "Berbagi dengan teman", "tokoh": "kue dan dua sahabat" },
-    { "slug": "hemat-air", "judul": "Keran Bocor Menangis!", "pesan": "Matikan keran setelah dipakai", "tokoh": "keran air sedih" },
-    { "slug": "sarapan", "judul": "Perut Keroncongan di Sekolah!", "pesan": "Sarapan sebelum sekolah", "tokoh": "perut lucu dan nasi" },
-    { "slug": "pakai-sepatu", "judul": "Sepatu Kiri Kok di Kanan?", "pesan": "Belajar memakai sepatu sendiri", "tokoh": "sepasang sepatu" }
+    {
+      "slug": "makan-sayur",
+      "judul": "Brokoli Kok Ditinggal Sendirian?",
+      "pesan": "Makan sayur biar kuat",
+      "tokoh": "brokoli kecil sedih tidak dimakan"
+    },
+    {
+      "slug": "minum-air",
+      "judul": "Kenapa Badanku Lemas?",
+      "pesan": "Minum air putih yang cukup",
+      "tokoh": "tetes air ceria"
+    },
+    {
+      "slug": "tidur-siang",
+      "judul": "Mata Ngantuk Tapi Mau Main Terus?",
+      "pesan": "Tidur cukup biar semangat",
+      "tokoh": "bantal dan bulan kecil"
+    },
+    {
+      "slug": "rapikan-mainan",
+      "judul": "Mainan Menangis Berserakan!",
+      "pesan": "Rapikan mainan setelah bermain",
+      "tokoh": "boneka beruang sedih di lantai"
+    },
+    {
+      "slug": "buang-sampah",
+      "judul": "Sampah Nakal Bikin Sungai Sedih",
+      "pesan": "Buang sampah pada tempatnya",
+      "tokoh": "tempat sampah lapar"
+    },
+    {
+      "slug": "terima-kasih",
+      "judul": "Kata Ajaib Apa Itu?",
+      "pesan": "Ucapkan tolong, maaf, dan terima kasih",
+      "tokoh": "bintang kata ajaib"
+    },
+    {
+      "slug": "mandi",
+      "judul": "Siapa Takut Mandi?",
+      "pesan": "Mandi dua kali sehari",
+      "tokoh": "gelembung sabun ceria"
+    },
+    {
+      "slug": "antre",
+      "judul": "Ayo Antre Satu-Satu!",
+      "pesan": "Sabar menunggu giliran",
+      "tokoh": "bebek-bebek berbaris"
+    },
+    {
+      "slug": "menyeberang",
+      "judul": "Lampu Merah Bilang Apa?",
+      "pesan": "Menyeberang di zebra cross bersama orang dewasa",
+      "tokoh": "lampu lalu lintas"
+    },
+    {
+      "slug": "berbagi",
+      "judul": "Kue Cuma Satu, Gimana Dong?",
+      "pesan": "Berbagi dengan teman",
+      "tokoh": "kue dan dua sahabat"
+    },
+    {
+      "slug": "hemat-air",
+      "judul": "Keran Bocor Menangis!",
+      "pesan": "Matikan keran setelah dipakai",
+      "tokoh": "keran air sedih"
+    },
+    {
+      "slug": "sarapan",
+      "judul": "Perut Keroncongan di Sekolah!",
+      "pesan": "Sarapan sebelum sekolah",
+      "tokoh": "perut lucu dan nasi"
+    },
+    {
+      "slug": "pakai-sepatu",
+      "judul": "Sepatu Kiri Kok di Kanan?",
+      "pesan": "Belajar memakai sepatu sendiri",
+      "tokoh": "sepasang sepatu"
+    }
   ],
   "done": [
-    { "slug": "sikat-gigi", "tanggal": "2026-11-17", "link": "https://youtube.com/shorts/ULgbybPcFEg" }
+    {
+      "slug": "sikat-gigi",
+      "tanggal": "2026-11-17",
+      "link": "https://youtube.com/shorts/ULgbybPcFEg"
+    },
+    {
+      "slug": "cuci-tangan",
+      "tanggal": "2026-11-17",
+      "judul": "Lagu Cuci Tangan untuk Anak 🧼 Kuman Ikut Makan Kue! | Kartun Cuci Tangan | Lagu Anak Balita",
+      "link": "https://youtube.com/shorts/EEFxqIRGAm8",
+      "jam_tayang": "2026-11-17 17:00 WIB (dijadwalkan)",
+      "file": "videos/2026-11-17-cuci-tangan.mp4"
+    }
   ]
 }
