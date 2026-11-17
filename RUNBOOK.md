@@ -8,6 +8,7 @@ Panduan untuk sesi terjadwal harian. Ikuti urutannya. Bahasa video: Indonesia, u
 - Font: `public/fredoka-latin-*.woff2` (sudah ada).
 
 ## 1. Pilih topik
+- **Cek dulu:** jika `topics.json > done` sudah punya entri dengan `tanggal` = hari ini (WIB) ATAU tayang terjadwal hari ini, JANGAN membuat video baru. Laporkan singkat ke pemilik bahwa video hari ini sudah ada, lalu berhenti.
 - Ambil item pertama dari `topics.json > queue`. Jika antrean kosong, tambahkan 7 topik baru (kebiasaan baik/kesehatan/sopan santun anak, aman, positif) lalu ambil yang pertama.
 
 ## 2. Buat video (pola yang sama dengan `src/tooth/`)
@@ -17,12 +18,14 @@ Struktur 4 adegan, 14 detik, 1080×1920, 30 fps:
 3. **Aksi**: anak (karakter orisinal channel: anak perempuan rambut cepol dua, kaos oranye) melakukan kebiasaan baiknya.
 4. **Bahagia**: tokoh senang + ajakan besar (pesan topik).
 - Tulis lirik orisinal 4 baris × 8 suku kata; buat `src/<slug>/song.json` (salin bentuk `src/cuci-tangan/song.json`) dan sintesis musik dengan pola `scripts/synth_cuci_tangan.py` (melodi baru, efek suara sesuai adegan) → `public/<slug>_music.wav`.
-- **Vokal anak bernyanyi (wajib sejak 18 Nov 2026):** suara anak SINTETIS (bukan rekaman/kloning suara orang sungguhan).
-  - `apt-get install -y espeak-ng` dan `pip install --break-system-packages pyworld scipy` (pasang tiap sesi).
-  - `python3 scripts/sing.py src/<slug>/song.json public/<slug>_vocal.wav` — tiap suku kata diucapkan espeak-ng (Indonesia), nada dikunci ke melodi `notes`, formant dinaikkan agar terdengar seperti anak kecil.
-  - Tulis suku kata sesuai bunyi bahasa Indonesia (mis. `"nyum"`, bukan singkatan); hindari angka/simbol di `syll`.
-  - Gabungkan: `ffmpeg -i public/<slug>_music.wav -i public/<slug>_vocal.wav -filter_complex "[0:a]volume=0.55[m];[1:a]volume=0.9[v];[m][v]amix=inputs=2:normalize=0,alimiter=limit=0.89[o]" -map "[o]" public/<slug>_song.wav`, lalu pakai `<slug>_song.wav` di `<Audio>`.
-  - Cek nada vokal: ukur f0 per nada (pyworld.harvest), median selisih < 0,5 semitone dan tidak ada nada yang hilang. Jika espeak-ng tidak bisa dipasang, berhenti dan laporkan (jangan unggah tanpa vokal).
+- **Vokal anak (wajib sejak 18 Nov 2026; format v8 disetujui pemilik):** tiap baris lirik DIUCAPKAN jelas oleh suara neural sintetis (bukan rekaman/kloning orang sungguhan), dinaikkan sedikit agar seperti anak, di atas musik.
+  - Pasang: `pip install --break-system-packages piper-tts pyworld scipy`; unduh suara Piper Indonesia `curl -sSL -o /home/claude/voices/v.tar.bz2 https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-id_ID-news_tts-medium.tar.bz2` lalu ekstrak ke `/home/claude/voices/piper-id/` (folder baru, terpisah dari repo).
+  - Musik: di skrip synth, kecilkan lead melodi (`lead` 0.02, `bell` 0.1) agar tidak menutupi suara → `public/<slug>_music.wav`.
+  - Vokal: `python3 scripts/speak_lines.py src/<slug>/song.json public/<slug>_vocal.wav` (tiap baris harus ≤ `lineSec` − 0,25 detik; skrip mempercepat otomatis jika perlu).
+  - Gabungkan: `ffmpeg -i public/<slug>_music.wav -i public/<slug>_vocal.wav -filter_complex "[0:a]volume=0.4[m];[1:a]highpass=f=100,equalizer=f=3000:t=q:w=1:g=2,volume=1.1[v];[m][v]amix=inputs=2:normalize=0,alimiter=limit=0.84[o]" -map "[o]" public/<slug>_song.wav`, pakai di `<Audio>`.
+  - Lirik di layar: satu baris menyala utuh saat diucapkan (`const on = frame >= nf[0] - 6`), bukan per suku kata.
+  - JANGAN kembali ke mode bernyanyi `scripts/sing.py` (pemilik menilai robotik/putus-putus) kecuali pemilik meminta.
+  - Jika suara Piper tidak bisa diunduh/dipasang, berhenti dan laporkan (jangan unggah tanpa vokal, jangan pakai espeak).
 - Buat komponen `src/<slug>/Video.tsx` dengan karakter SVG orisinal, daftarkan di `src/Root.tsx`.
 - Aturan isi: tidak ada karakter/merek berhak cipta, tidak ada lirik lagu orang lain, tidak ada wajah orang asli, pesan aman untuk anak.
 
@@ -30,7 +33,7 @@ Struktur 4 adegan, 14 detik, 1080×1920, 30 fps:
 - Render still pada 4 frame kunci, lihat hasilnya; perbaiki tumpang tindih teks/karakter.
 - Render: `npx remotion render <Id> out/<tanggal>-<slug>.mp4 --codec=h264 --crf=20`. Target ≤ 15 MB.
 - Cek audio (`volumedetect`, max sekitar −1 dB; vokal harus terdengar jelas di atas musik) dan beberapa frame dari MP4 jadi.
-- Deskripsi YouTube: tambahkan baris "Suara nyanyian dibuat secara sintetis." (transparansi konten buatan).
+- Deskripsi YouTube: tambahkan baris "Suara dalam video ini dibuat secara sintetis." (transparansi konten buatan).
 
 ## 4. Simpan ke repo
 - Salin MP4 ke `videos/<tanggal>-<slug>.mp4`, commit + push (repo publik, agar halaman YouTube Studio bisa mengunduhnya lewat raw.githubusercontent.com).

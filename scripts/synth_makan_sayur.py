@@ -195,8 +195,8 @@ for li, line in enumerate(lines):
         at = t0 + cum * E
         last_of_song = li == len(lines) - 1 and j == len(line["notes"]) - 1
         dur = rhythm[j] * E * (4 if last_of_song else 0.9)
-        add(at, bell(hz(m), 1.4 if last_of_song else 0.9), 0.2)
-        add(at, lead(hz(m), dur), 0.08 if li > 0 else 0.06)
+        add(at, bell(hz(m), 1.4 if last_of_song else 0.9), 0.1)
+        add(at, lead(hz(m), dur), 0.02)
         cum += rhythm[j]
 
 QUAL = {0: [0, 4, 7], 1: [0, 3, 7]}
