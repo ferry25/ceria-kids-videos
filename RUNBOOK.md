@@ -18,14 +18,15 @@ Struktur 4 adegan, 14 detik, 1080×1920, 30 fps:
 3. **Aksi**: anak (karakter orisinal channel: anak perempuan rambut cepol dua, kaos oranye) melakukan kebiasaan baiknya.
 4. **Bahagia**: tokoh senang + ajakan besar (pesan topik).
 - Tulis lirik orisinal 4 baris × 8 suku kata; buat `src/<slug>/song.json` (salin bentuk `src/cuci-tangan/song.json`) dan sintesis musik dengan pola `scripts/synth_cuci_tangan.py` (melodi baru, efek suara sesuai adegan) → `public/<slug>_music.wav`.
-- **Vokal anak (wajib sejak 18 Nov 2026; format v8 disetujui pemilik):** tiap baris lirik DIUCAPKAN jelas oleh suara neural sintetis (bukan rekaman/kloning orang sungguhan), dinaikkan sedikit agar seperti anak, di atas musik.
-  - Pasang: `pip install --break-system-packages piper-tts pyworld scipy`; unduh suara Piper Indonesia `curl -sSL -o /home/claude/voices/v.tar.bz2 https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-id_ID-news_tts-medium.tar.bz2` lalu ekstrak ke `/home/claude/voices/piper-id/` (folder baru, terpisah dari repo).
-  - Musik: di skrip synth, kecilkan lead melodi (`lead` 0.02, `bell` 0.1) agar tidak menutupi suara → `public/<slug>_music.wav`.
-  - Vokal: `python3 scripts/speak_lines.py src/<slug>/song.json public/<slug>_vocal.wav` (tiap baris harus ≤ `lineSec` − 0,25 detik; skrip mempercepat otomatis jika perlu).
-  - Gabungkan: `ffmpeg -i public/<slug>_music.wav -i public/<slug>_vocal.wav -filter_complex "[0:a]volume=0.4[m];[1:a]highpass=f=100,equalizer=f=3000:t=q:w=1:g=2,volume=1.1[v];[m][v]amix=inputs=2:normalize=0,alimiter=limit=0.84[o]" -map "[o]" public/<slug>_song.wav`, pakai di `<Audio>`.
-  - Lirik di layar: satu baris menyala utuh saat diucapkan (`const on = frame >= nf[0] - 6`), bukan per suku kata.
-  - JANGAN kembali ke mode bernyanyi `scripts/sing.py` (pemilik menilai robotik/putus-putus) kecuali pemilik meminta.
-  - Jika suara Piper tidak bisa diunduh/dipasang, berhenti dan laporkan (jangan unggah tanpa vokal, jangan pakai espeak).
+- **Vokal anak bernyanyi (wajib; format v9 disetujui pemilik 18 Nov 2026):** suara neural sintetis yang jelas (bukan rekaman/kloning orang sungguhan), mengikuti NADA melodi dan KETUKAN musik, timbre seperti anak.
+  - Pasang (tiap sesi): `apt-get install -y espeak-ng mbrola mbrola-id1`; `pip install --break-system-packages piper-tts pyworld scipy`; unduh suara Piper Indonesia `curl -sSL -o /home/claude/voices/v.tar.bz2 https://github.com/k2-fsa/sherpa-onnx/releases/download/tts-models/vits-piper-id_ID-news_tts-medium.tar.bz2` lalu ekstrak ke `/home/claude/voices/piper-id/` (folder baru, di luar repo).
+  - Musik: di skrip synth, kecilkan lead melodi (`lead` 0.02, `bell` 0.1) agar tidak menutupi vokal → `public/<slug>_music.wav`.
+  - Vokal: `python3 scripts/sing_neural.py src/<slug>/song.json public/<slug>_vocal.wav`. Cetakan tiap baris harus menunjukkan `time-stretch` sekitar x0.9–x1.3 (jika jauh di luar itu, sesuaikan lirik/tempo).
+  - Cek nada: ukur f0 per suku kata (pyworld.harvest) → median selisih < 0,3 semitone, maksimal < 1 semitone.
+  - Gabungkan: `ffmpeg -i public/<slug>_music.wav -i public/<slug>_vocal.wav -filter_complex "[0:a]volume=0.42[m];[1:a]highpass=f=100,equalizer=f=3000:t=q:w=1:g=2,aecho=0.9:0.6:40|80:0.10|0.06,volume=1.1[v];[m][v]amix=inputs=2:normalize=0,alimiter=limit=0.84[o]" -map "[o]" public/<slug>_song.wav`, pakai di `<Audio>`.
+  - Lirik di layar menyala per suku kata mengikuti ketukan (pola asli `const on = frame >= nf[j]`).
+  - JANGAN pakai `scripts/sing.py` (espeak, dinilai robot/putus-putus) atau `scripts/speak_lines.py` (v8, tidak bernada) kecuali pemilik meminta.
+  - Jika suara Piper tidak bisa diunduh/dipasang, berhenti dan laporkan (jangan unggah tanpa vokal).
 - Buat komponen `src/<slug>/Video.tsx` dengan karakter SVG orisinal, daftarkan di `src/Root.tsx`.
 - Aturan isi: tidak ada karakter/merek berhak cipta, tidak ada lirik lagu orang lain, tidak ada wajah orang asli, pesan aman untuk anak.
 
