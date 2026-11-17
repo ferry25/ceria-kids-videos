@@ -16,14 +16,21 @@ Struktur 4 adegan, 14 detik, 1080×1920, 30 fps:
 2. **Penyebab**: tokoh/situasi lucu yang bikin masalah.
 3. **Aksi**: anak (karakter orisinal channel: anak perempuan rambut cepol dua, kaos oranye) melakukan kebiasaan baiknya.
 4. **Bahagia**: tokoh senang + ajakan besar (pesan topik).
-- Tulis lirik orisinal 4 baris × 8 suku kata; buat `src/<slug>/song.json` (salin bentuk `src/tooth_song.json`) dan sintesis audio dengan pola `scripts/synth_tooth.py` (melodi baru, efek suara sesuai adegan).
+- Tulis lirik orisinal 4 baris × 8 suku kata; buat `src/<slug>/song.json` (salin bentuk `src/cuci-tangan/song.json`) dan sintesis musik dengan pola `scripts/synth_cuci_tangan.py` (melodi baru, efek suara sesuai adegan) → `public/<slug>_music.wav`.
+- **Vokal anak bernyanyi (wajib sejak 18 Nov 2026):** suara anak SINTETIS (bukan rekaman/kloning suara orang sungguhan).
+  - `apt-get install -y espeak-ng` dan `pip install --break-system-packages pyworld scipy` (pasang tiap sesi).
+  - `python3 scripts/sing.py src/<slug>/song.json public/<slug>_vocal.wav` — tiap suku kata diucapkan espeak-ng (Indonesia), nada dikunci ke melodi `notes`, formant dinaikkan agar terdengar seperti anak kecil.
+  - Tulis suku kata sesuai bunyi bahasa Indonesia (mis. `"nyum"`, bukan singkatan); hindari angka/simbol di `syll`.
+  - Gabungkan: `ffmpeg -i public/<slug>_music.wav -i public/<slug>_vocal.wav -filter_complex "[0:a]volume=0.55[m];[1:a]volume=0.9[v];[m][v]amix=inputs=2:normalize=0,alimiter=limit=0.89[o]" -map "[o]" public/<slug>_song.wav`, lalu pakai `<slug>_song.wav` di `<Audio>`.
+  - Cek nada vokal: ukur f0 per nada (pyworld.harvest), median selisih < 0,5 semitone dan tidak ada nada yang hilang. Jika espeak-ng tidak bisa dipasang, berhenti dan laporkan (jangan unggah tanpa vokal).
 - Buat komponen `src/<slug>/Video.tsx` dengan karakter SVG orisinal, daftarkan di `src/Root.tsx`.
 - Aturan isi: tidak ada karakter/merek berhak cipta, tidak ada lirik lagu orang lain, tidak ada wajah orang asli, pesan aman untuk anak.
 
 ## 3. Periksa sebelum render penuh
 - Render still pada 4 frame kunci, lihat hasilnya; perbaiki tumpang tindih teks/karakter.
 - Render: `npx remotion render <Id> out/<tanggal>-<slug>.mp4 --codec=h264 --crf=20`. Target ≤ 15 MB.
-- Cek audio (`volumedetect`, max sekitar −1 dB) dan beberapa frame dari MP4 jadi.
+- Cek audio (`volumedetect`, max sekitar −1 dB; vokal harus terdengar jelas di atas musik) dan beberapa frame dari MP4 jadi.
+- Deskripsi YouTube: tambahkan baris "Suara nyanyian dibuat secara sintetis." (transparansi konten buatan).
 
 ## 4. Simpan ke repo
 - Salin MP4 ke `videos/<tanggal>-<slug>.mp4`, commit + push (repo publik, agar halaman YouTube Studio bisa mengunduhnya lewat raw.githubusercontent.com).
