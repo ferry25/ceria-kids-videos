@@ -3,12 +3,6 @@
   "note": "Satu topik per hari, berurutan. Setelah dipakai, pindahkan ke 'done' dengan tanggal dan link video.",
   "queue": [
     {
-      "slug": "makan-sayur",
-      "judul": "Brokoli Kok Ditinggal Sendirian?",
-      "pesan": "Makan sayur biar kuat",
-      "tokoh": "brokoli kecil sedih tidak dimakan"
-    },
-    {
       "slug": "minum-air",
       "judul": "Kenapa Badanku Lemas?",
       "pesan": "Minum air putih yang cukup",
@@ -94,6 +88,15 @@
       "link": "https://youtube.com/shorts/EEFxqIRGAm8",
       "jam_tayang": "2026-11-17 17:00 WIB (dijadwalkan)",
       "file": "videos/2026-11-17-cuci-tangan.mp4"
+    },
+    {
+      "slug": "makan-sayur",
+      "tanggal": "2026-11-18",
+      "judul": "Lagu Makan Sayur untuk Anak 🥦 Brokoli Kok Ditinggal? | Kartun Makan Sayur | Lagu Anak Balita",
+      "link": "https://youtube.com/shorts/vDAZYjMcoYM",
+      "jam_tayang": "2026-11-18 17:00 WIB (dijadwalkan)",
+      "file": "videos/2026-11-18-makan-sayur.mp4",
+      "vokal": "v8: ucapan jelas, suara neural sintetis (scripts/speak_lines.py)"
     }
   ]
 }
