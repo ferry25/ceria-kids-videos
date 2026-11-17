@@ -93,10 +93,12 @@
       "slug": "makan-sayur",
       "tanggal": "2026-11-18",
       "judul": "Lagu Makan Sayur untuk Anak 🥦 Brokoli Kok Ditinggal? | Kartun Makan Sayur | Lagu Anak Balita",
-      "link": "https://youtube.com/shorts/vDAZYjMcoYM",
+      "link": "https://youtube.com/shorts/5nh9Ii8LIEY",
       "jam_tayang": "2026-11-18 17:00 WIB (dijadwalkan)",
-      "file": "videos/2026-11-18-makan-sayur.mp4",
-      "vokal": "v8: ucapan jelas, suara neural sintetis (scripts/speak_lines.py)"
+      "file": "videos/2026-11-18-makan-sayur-v10.mp4",
+      "vokal": "v10: bernyanyi selaras nada & ketukan (scripts/sing_neural.py)",
+      "link_v8_lama": "https://youtube.com/shorts/vDAZYjMcoYM",
+      "catatan": "Video v8 (vDAZYjMcoYM) juga terjadwal 17:00 - pemilik diminta membatalkannya di Studio"
     }
   ]
 }
