@@ -1,0 +1,17 @@
+{
+  "fps": 30,
+  "songStart": 0.5,
+  "eighth": 0.25,
+  "lineSec": 3,
+  "rhythm": [2, 1, 1, 2, 1, 1, 2, 2],
+  "durationInFrames": 420,
+  "scenes": [0, 105, 195, 285],
+  "lines": [
+    { "syll": ["Bi", "bir ", "ke", "ring, ", "ba", "dan ", "le", "mas!"], "notes": [69, 69, 67, 65, 67, 65, 62, 60] },
+    { "syll": ["Pa", "nas ", "te", "rik, ", "lu", "pa ", "mi", "num!"], "notes": [60, 62, 64, 65, 67, 65, 64, 62] },
+    { "syll": ["Glek, ", "glek, ", "glek, ", "mi", "num ", "yang ", "ba", "nyak!"], "notes": [67, 67, 67, 69, 72, 69, 67, 65] },
+    { "syll": ["Ba", "dan ", "se", "gar, ", "ha", "ti ", "se", "nang!"], "notes": [65, 69, 72, 72, 70, 69, 67, 65] }
+  ],
+  "chords": [[41, 0], [48, 0], [46, 0], [48, 0], [48, 0], [41, 0], [46, 0], [41, 0]],
+  "popFrames": [195, 210, 218]
+}
