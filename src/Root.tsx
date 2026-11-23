@@ -8,6 +8,8 @@ import { VeggieShort } from "./makan-sayur/Video";
 import sayurSong from "./makan-sayur/song.json";
 import { WaterShort } from "./minum-air/Video";
 import airSong from "./minum-air/song.json";
+import { NapShort } from "./tidur-siang/Video";
+import napSong from "./tidur-siang/song.json";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -42,6 +44,14 @@ export const RemotionRoot: React.FC = () => {
         component={WaterShort}
         durationInFrames={airSong.durationInFrames}
         fps={airSong.fps}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="NapShort"
+        component={NapShort}
+        durationInFrames={napSong.durationInFrames}
+        fps={napSong.fps}
         width={1080}
         height={1920}
       />
