@@ -3,12 +3,6 @@
   "note": "Satu topik per hari, berurutan. Setelah dipakai, pindahkan ke 'done' dengan tanggal dan link video.",
   "queue": [
     {
-      "slug": "rapikan-mainan",
-      "judul": "Mainan Menangis Berserakan!",
-      "pesan": "Rapikan mainan setelah bermain",
-      "tokoh": "boneka beruang sedih di lantai"
-    },
-    {
       "slug": "buang-sampah",
       "judul": "Sampah Nakal Bikin Sungai Sedih",
       "pesan": "Buang sampah pada tempatnya",
@@ -107,6 +101,16 @@
       "file": "videos/2026-11-23-tidur-siang.mp4",
       "vokal": "v10: bernyanyi selaras nada & ketukan (scripts/sing_neural.py)",
       "catatan": "Run 23 Nov mulai 16.36 WIB, slot 17.00 hari ini tidak terkejar -> slot berikutnya Selasa 24 Nov 17.00 WIB"
+    },
+    {
+      "slug": "rapikan-mainan",
+      "tanggal": "2026-11-25",
+      "judul": "Lagu Merapikan Mainan untuk Anak 🧸 Kok Mainan Menangis? | Kartun Rapikan Mainan | Lagu Anak Balita",
+      "link": "https://youtube.com/shorts/cMA5Oxra-x8",
+      "jam_tayang": "2026-11-26 17:00 WIB (dijadwalkan)",
+      "file": "videos/2026-11-25-rapikan-mainan.mp4",
+      "vokal": "v10: bernyanyi selaras nada & ketukan (scripts/sing_neural.py)",
+      "catatan": "Run 25 Nov mulai 18.10 WIB, slot 17.00 hari ini sudah lewat -> slot berikutnya Kamis 26 Nov 17.00 WIB"
     }
   ]
 }
