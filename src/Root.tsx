@@ -12,6 +12,8 @@ import { NapShort } from "./tidur-siang/Video";
 import napSong from "./tidur-siang/song.json";
 import { TidyToysShort } from "./rapikan-mainan/Video";
 import mainanSong from "./rapikan-mainan/song.json";
+import { TrashShort } from "./buang-sampah/Video";
+import sampahSong from "./buang-sampah/song.json";
 
 export const RemotionRoot: React.FC = () => {
   return (
@@ -62,6 +64,14 @@ export const RemotionRoot: React.FC = () => {
         component={TidyToysShort}
         durationInFrames={mainanSong.durationInFrames}
         fps={mainanSong.fps}
+        width={1080}
+        height={1920}
+      />
+      <Composition
+        id="TrashShort"
+        component={TrashShort}
+        durationInFrames={sampahSong.durationInFrames}
+        fps={sampahSong.fps}
         width={1080}
         height={1920}
       />
