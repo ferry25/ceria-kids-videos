@@ -1,0 +1,17 @@
+{
+  "fps": 30,
+  "songStart": 0.5,
+  "eighth": 0.25,
+  "lineSec": 3,
+  "rhythm": [2, 1, 1, 2, 1, 1, 2, 2],
+  "durationInFrames": 420,
+  "scenes": [0, 105, 195, 285],
+  "lines": [
+    { "syll": ["Bin", "tang", "ku ", "re", "dup ", "dan ", "se", "dih"], "notes": [64, 64, 67, 64, 62, 64, 62, 57] },
+    { "syll": ["Tak ", "a", "da ", "yang ", "bi", "lang ", "to", "long"], "notes": [60, 60, 64, 67, 65, 64, 62, 62] },
+    { "syll": ["To", "long ", "dan ", "te", "ri", "ma ", "ka", "sih!"], "notes": [67, 67, 72, 71, 69, 67, 69, 72] },
+    { "syll": ["Ha", "ti ", "se", "nang, ", "bin", "tang ", "te", "rang!"], "notes": [69, 72, 71, 67, 65, 67, 64, 60] }
+  ],
+  "chords": [[45, 1], [43, 0], [41, 0], [43, 0], [48, 0], [43, 0], [41, 0], [48, 0]],
+  "popFrames": [210, 228, 246]
+}
